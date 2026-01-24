@@ -60,7 +60,7 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
     const ai = new GoogleGenAI({ apiKey });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-1.5-pro',
       contents: `Perform a dialectical analysis on the market/topic: "${query}".
       
       Step 1 (Consensus): What does everyone believe? What is the herd doing?
