@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 
 const analysisSchema = {
   type: Type.OBJECT,
@@ -10,8 +10,8 @@ const analysisSchema = {
       type: Type.OBJECT,
       properties: {
         theme: { type: Type.STRING, description: "The dominant narrative or conventional wisdom." },
-        points: { 
-          type: Type.ARRAY, 
+        points: {
+          type: Type.ARRAY,
           items: { type: Type.STRING },
           description: "List of 3 key beliefs held by the majority."
         },
@@ -22,14 +22,14 @@ const analysisSchema = {
     skeptic: {
       type: Type.OBJECT,
       properties: {
-        fallacies: { 
-          type: Type.ARRAY, 
+        fallacies: {
+          type: Type.ARRAY,
           items: { type: Type.STRING },
           description: "Logical fallacies in the consensus view."
         },
         stagnationPoint: { type: Type.STRING, description: "Where progress has stalled." },
-        mimeticTraps: { 
-          type: Type.ARRAY, 
+        mimeticTraps: {
+          type: Type.ARRAY,
           items: { type: Type.STRING },
           description: "Common traps founders fall into."
         }
@@ -51,6 +51,14 @@ const analysisSchema = {
 
 export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
   try {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please set GEMINI_API_KEY in your environment variables.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Perform a dialectical analysis on the market/topic: "${query}".
@@ -70,7 +78,7 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
 
     const text = response.text;
     if (!text) throw new Error("No response from Aletheia Core.");
-    
+
     const result = JSON.parse(text) as AnalysisResult;
 
     // Extract Grounding Metadata (Sources)
@@ -82,7 +90,7 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
           uri: chunk.web?.uri
         }))
         .filter((s: any): s is { title: string; uri: string } => !!s.uri);
-      
+
       // Deduplicate sources
       const uniqueSources = Array.from(
         new Map(sources.map((item) => [item.uri, item])).values()
