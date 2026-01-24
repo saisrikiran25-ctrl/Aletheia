@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #020617;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for technical feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E3A8A;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #22D3EE;
+}
+
+.glass-panel {
+  background: rgba(30, 58, 138, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 58, 138, 0.2);
+}

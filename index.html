@@ -4,78 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aletheia | Zero-to-One Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              obsidian: '#020617',
-              electricCyan: '#22D3EE',
-              deepSapphire: '#1E3A8A',
-              slate: {
-                850: '#152035',
-                900: '#0f172a',
-                950: '#020617',
-              }
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['Geist Mono', 'monospace'],
-            },
-            animation: {
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'decode': 'decode 0.5s ease-out forwards',
-            },
-            backgroundImage: {
-              'grid-pattern': "linear-gradient(to right, #1E3A8A1A 1px, transparent 1px), linear-gradient(to bottom, #1E3A8A1A 1px, transparent 1px)",
-            }
-          },
-        },
-      }
-    </script>
-    <style>
-      body {
-        background-color: #020617;
-        color: #f8fafc;
-        overflow-x: hidden;
-      }
-      /* Custom scrollbar for technical feel */
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #020617;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #1E3A8A;
-        border-radius: 2px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #22D3EE;
-      }
-      .glass-panel {
-        background: rgba(30, 58, 138, 0.05);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(30, 58, 138, 0.2);
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
-    "framer-motion": "https://esm.sh/framer-motion@^12.29.0",
-    "three": "https://esm.sh/three@^0.182.0"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
