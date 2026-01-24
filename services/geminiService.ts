@@ -67,17 +67,39 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
       Step 2 (Skeptic): Attack Step 1. Find the stagnation, the lies, and the mimicry.
       Step 3 (Synthesis): Find the "Zero to One" opportunity. The Secret.
       
-      Return the result in strict JSON format according to the schema.`,
+      Return the result in strict JSON format according to this schema:
+      {
+        "consensus": {
+          "theme": "string",
+          "points": ["string", "string", "string"],
+          "marketSaturation": number
+        },
+        "skeptic": {
+          "fallacies": ["string"],
+          "stagnationPoint": "string",
+          "mimeticTraps": ["string"]
+        },
+        "synthesis": {
+          "secret": "string",
+          "verticalStrategy": "string",
+          "opportunityScore": number
+        }
+      }
+      
+      IMPORTANT: Return ONLY the raw JSON string. Do not include markdown formatting like \`\`\`json.`,
       config: {
         tools: [{ googleSearch: {} }], // Enable Google Search Grounding
         responseMimeType: "application/json",
-        responseSchema: analysisSchema,
+        // responseSchema: analysisSchema, // CONFLICT: Cannot use Schema with Search tool
         systemInstruction: "You are ALETHEIA, a high-fidelity intelligence terminal designed for Zero-to-One founders. You reject bubbly optimism. You provide cold, hard, contrarian analysis based on real-world data. Be concise, technical, and ruthless.",
       },
     });
 
-    const text = response.text;
+    let text = response.text;
     if (!text) throw new Error("No response from Aletheia Core.");
+
+    // Clean potential markdown formatting just in case
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
     const result = JSON.parse(text) as AnalysisResult;
 
