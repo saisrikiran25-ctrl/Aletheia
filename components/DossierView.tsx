@@ -9,7 +9,21 @@ interface DossierViewProps {
 
 export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
   const [copied, setCopied] = React.useState(false);
-  const score = data.synthesis?.opportunityScore ?? 0;
+
+  // Helper to normalize scores (handle 0-1 decimals vs 0-100 integers)
+  const normalizeScore = (val: number | undefined): number => {
+    if (val === undefined || val === null) return 0;
+    // If value is small decimal (e.g. 0.85), convert to 85
+    // If value is > 1 (e.g. 85), keep as 85
+    return val <= 1 && val > 0 ? Math.round(val * 100) : Math.round(val);
+  };
+
+  const rawScore = data.synthesis?.opportunityScore;
+  const score = normalizeScore(rawScore);
+
+  const rawSaturation = data.consensus?.marketSaturation;
+  const saturation = normalizeScore(rawSaturation);
+
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -58,7 +72,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
           </p>
         </div>
         <div className="flex gap-3 print:hidden">
-          <button 
+          <button
             onClick={handleShare}
             className="flex items-center gap-2 px-4 py-2 bg-electricCyan/10 border border-electricCyan text-electricCyan rounded hover:bg-electricCyan hover:text-black transition-all text-xs uppercase tracking-wider font-bold cursor-pointer active:scale-95"
           >
@@ -70,9 +84,9 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+
         {/* Consensus Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -86,42 +100,42 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
           <ul className="space-y-2 mb-6">
             {(data.consensus?.points || []).map((point, i) => (
               <li key={i} className="flex gap-2 text-sm text-slate-400">
-                <span className="text-slate-600">0{i+1}.</span> {point}
+                <span className="text-slate-600">0{i + 1}.</span> {point}
               </li>
             ))}
           </ul>
           <div className="mt-auto pt-4 border-t border-slate-800">
             <div className="flex justify-between text-xs font-mono text-slate-500 mb-1">
               <span>MARKET SATURATION</span>
-              <span>{data.consensus?.marketSaturation ?? 0}%</span>
+              <span>{saturation}%</span>
             </div>
             <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-yellow-500/70" 
-                style={{ width: `${data.consensus?.marketSaturation ?? 0}%` }}
+              <div
+                className="h-full bg-yellow-500/70 transition-all duration-1000 ease-out"
+                style={{ width: `${saturation}%` }}
               />
             </div>
           </div>
         </motion.div>
 
         {/* Skeptic Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="glass-panel p-6 rounded-lg border-red-900/20 bg-red-950/5 relative overflow-hidden group print:break-inside-avoid"
         >
-           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-red-500 print:hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-red-500 print:hidden">
             <AlertTriangle size={64} />
           </div>
           <h3 className="text-red-400/60 text-xs font-mono uppercase tracking-widest mb-4">II. The Skeptic (Adversarial)</h3>
-          
+
           <div className="space-y-4">
             <div>
               <span className="text-xs text-red-500 font-bold uppercase block mb-1">Critical Failure Point</span>
               <p className="text-slate-200 text-sm leading-relaxed">{data.skeptic?.stagnationPoint || 'None detected'}</p>
             </div>
-            
+
             <div>
               <span className="text-xs text-red-500 font-bold uppercase block mb-1">Detected Fallacies</span>
               <ul className="space-y-1">
@@ -136,23 +150,23 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
         </motion.div>
 
         {/* Synthesis Card - The Secret */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="md:col-span-2 glass-panel p-8 rounded-lg border-electricCyan/30 bg-electricCyan/5 relative overflow-hidden group print:break-inside-avoid"
         >
-           <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity text-electricCyan rotate-12 print:hidden">
+          <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity text-electricCyan rotate-12 print:hidden">
             <Lightbulb size={200} />
           </div>
-          
+
           <div className="flex flex-col md:flex-row gap-8 relative z-10">
             <div className="flex-1">
               <h3 className="text-electricCyan text-xs font-mono uppercase tracking-widest mb-2">III. The Synthesis (Zero to One)</h3>
               <h2 className="text-3xl font-bold text-white mb-6 leading-tight">
                 {data.synthesis?.secret || 'Synthesis Incomplete'}
               </h2>
-              
+
               <div className="bg-black/30 p-4 rounded border border-electricCyan/20 mb-6">
                 <span className="text-xs text-electricCyan/70 font-bold uppercase block mb-2">Execution Strategy</span>
                 <p className="text-slate-300 font-mono text-sm leading-relaxed">
@@ -168,7 +182,7 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {data.sources.slice(0, 3).map((source, idx) => (
-                      <a 
+                      <a
                         key={idx}
                         href={source.uri}
                         target="_blank"
@@ -189,50 +203,50 @@ export const DossierView: React.FC<DossierViewProps> = ({ data }) => {
               <div className="relative w-40 h-40 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                   {/* Background Track */}
-                  <circle 
-                    cx="60" 
-                    cy="60" 
-                    r={radius} 
-                    stroke="#0f172a" 
-                    strokeWidth="8" 
-                    fill="transparent" 
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    stroke="#0f172a"
+                    strokeWidth="8"
+                    fill="transparent"
                   />
-                  <circle 
-                    cx="60" 
-                    cy="60" 
-                    r={radius} 
-                    stroke="#1E3A8A" 
-                    strokeWidth="8" 
-                    fill="transparent" 
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    stroke="#1E3A8A"
+                    strokeWidth="8"
+                    fill="transparent"
                     className="opacity-20"
                   />
                   {/* Progress Circle */}
-                  <circle 
-                    cx="60" 
-                    cy="60" 
-                    r={radius} 
-                    stroke="#22D3EE" 
-                    strokeWidth="8" 
-                    fill="transparent" 
-                    strokeDasharray={circumference} 
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    stroke="#22D3EE"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
                     className="transition-all duration-1000 ease-out drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
                   />
                 </svg>
-                
+
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span className="text-4xl font-bold text-white block tracking-tighter">
-                    {data.synthesis?.opportunityScore ?? 0}
+                    {score}%
                   </span>
                   <span className="text-[10px] text-electricCyan uppercase tracking-widest mt-1">
                     Alpha Score
                   </span>
                 </div>
               </div>
-              
+
               <div className="mt-6 text-center">
-                <span className="text-xs text-slate-400 block mb-1">Vertical Monopoly<br/>Potential</span>
+                <span className="text-xs text-slate-400 block mb-1">Vertical Monopoly<br />Potential</span>
                 <div className="flex gap-1 justify-center print:hidden">
                   <span className="w-1 h-1 bg-electricCyan rounded-full animate-pulse" />
                   <span className="w-1 h-1 bg-electricCyan rounded-full animate-pulse delay-100" />
