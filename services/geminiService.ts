@@ -86,10 +86,10 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
         }
       }
       
-      IMPORTANT: Return ONLY the raw JSON string. Do not include markdown formatting like \`\`\`json.`,
+      IMPORTANT: You must return the result as specific, valid JSON only. Do not use markdown blocks. Do not explain. Just the JSON text.`,
       config: {
         tools: [{ googleSearch: {} }], // Enable Google Search Grounding
-        responseMimeType: "application/json",
+        // responseMimeType: "application/json", // CONFLICT: JSON Mode is also "Controlled Generation" and conflicts with Search
         // responseSchema: analysisSchema, // CONFLICT: Cannot use Schema with Search tool
         systemInstruction: "You are ALETHEIA, a high-fidelity intelligence terminal designed for Zero-to-One founders. You reject bubbly optimism. You provide cold, hard, contrarian analysis based on real-world data. Be concise, technical, and ruthless.",
       },
@@ -98,29 +98,44 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
     let text = response.text;
     if (!text) throw new Error("No response from Aletheia Core.");
 
-    // Clean potential markdown formatting just in case
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    // Aggressively clean markdown and whitespace to find the JSON object
+    try {
+      text = text.trim();
+      // Remove ```json and ``` wrapping if present
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        text = match[0];
+      } else {
+        // Fallback cleanup if regex fails but it looks like JSON
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      }
 
-    const result = JSON.parse(text) as AnalysisResult;
+      const result = JSON.parse(text) as AnalysisResult;
 
-    // Extract Grounding Metadata (Sources)
-    if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-      const chunks = response.candidates[0].groundingMetadata.groundingChunks;
-      const sources = chunks
-        .map((chunk: any) => ({
-          title: chunk.web?.title || 'Verified Intelligence Source',
-          uri: chunk.web?.uri
-        }))
-        .filter((s: any): s is { title: string; uri: string } => !!s.uri);
+      // Extract Grounding Metadata (Sources)
+      if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+        const chunks = response.candidates[0].groundingMetadata.groundingChunks;
+        const sources = chunks
+          .map((chunk: any) => ({
+            title: chunk.web?.title || 'Verified Intelligence Source',
+            uri: chunk.web?.uri
+          }))
+          .filter((s: any): s is { title: string; uri: string } => !!s.uri);
 
-      // Deduplicate sources
-      const uniqueSources = Array.from(
-        new Map(sources.map((item) => [item.uri, item])).values()
-      );
-      result.sources = uniqueSources as { title: string; uri: string }[];
+        // Deduplicate sources
+        const uniqueSources = Array.from(
+          new Map(sources.map((item) => [item.uri, item])).values()
+        );
+        result.sources = uniqueSources as { title: string; uri: string }[];
+      }
+
+      return result;
+
+    } catch (parseError) {
+      console.error("JSON Parsing failed. Raw text:", text);
+      throw new Error(`Aletheia Core - Parse Error: ${parseError}`);
     }
 
-    return result;
   } catch (error) {
     console.error("Dialectic Engine Failure:", error);
     throw error;
