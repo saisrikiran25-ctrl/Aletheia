@@ -17,7 +17,7 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
         "X-Title": "Aletheia", // Optional, for OpenRouter rankings
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "google/gemini-2.5-pro",
         messages: [
           {
             role: "system",
