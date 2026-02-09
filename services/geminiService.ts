@@ -1,67 +1,31 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
-
-
-
-const analysisSchema = {
-  type: Type.OBJECT,
-  properties: {
-    consensus: {
-      type: Type.OBJECT,
-      properties: {
-        theme: { type: Type.STRING, description: "The dominant narrative or conventional wisdom." },
-        points: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "List of 3 key beliefs held by the majority."
-        },
-        marketSaturation: { type: Type.NUMBER, description: "Estimated saturation 0-100." }
-      },
-      required: ["theme", "points", "marketSaturation"]
-    },
-    skeptic: {
-      type: Type.OBJECT,
-      properties: {
-        fallacies: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Logical fallacies in the consensus view."
-        },
-        stagnationPoint: { type: Type.STRING, description: "Where progress has stalled." },
-        mimeticTraps: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Common traps founders fall into."
-        }
-      },
-      required: ["fallacies", "stagnationPoint", "mimeticTraps"]
-    },
-    synthesis: {
-      type: Type.OBJECT,
-      properties: {
-        secret: { type: Type.STRING, description: "The contrarian truth or 'Secret'." },
-        verticalStrategy: { type: Type.STRING, description: "Strategy to build a monopoly." },
-        opportunityScore: { type: Type.NUMBER, description: "0-100 score of opportunity." }
-      },
-      required: ["secret", "verticalStrategy", "opportunityScore"]
-    }
-  },
-  required: ["consensus", "skeptic", "synthesis"]
-};
 
 export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY || process.env.API_KEY;
 
     if (!apiKey) {
-      throw new Error("API Key is missing. Please set GEMINI_API_KEY in your environment variables.");
+      throw new Error("API Key is missing. Please set OPENROUTER_API_KEY in your environment variables.");
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: `Perform a dialectical analysis on the market/topic: "${query}".
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://aletheia.app", // Optional, for OpenRouter rankings
+        "X-Title": "Aletheia", // Optional, for OpenRouter rankings
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-exp:free",
+        messages: [
+          {
+            role: "system",
+            content: "You are ALETHEIA, a high-fidelity intelligence terminal designed for Zero-to-One founders. You reject bubbly optimism. You provide cold, hard, contrarian analysis based on real-world data. Be concise, technical, and ruthless."
+          },
+          {
+            role: "user",
+            content: `Perform a dialectical analysis on the market/topic: "${query}".
       
       Step 1 (Consensus): What does everyone believe? What is the herd doing?
       Step 2 (Skeptic): Attack Step 1. Find the stagnation, the lies, and the mimicry.
@@ -86,17 +50,21 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
         }
       }
       
-      IMPORTANT: You must return the result as specific, valid JSON only. Do not use markdown blocks. Do not explain. Just the JSON text.`,
-      config: {
-        tools: [{ googleSearch: {} }], // Enable Google Search Grounding
-        // responseMimeType: "application/json", // CONFLICT: JSON Mode is also "Controlled Generation" and conflicts with Search
-        // responseSchema: analysisSchema, // CONFLICT: Cannot use Schema with Search tool
-        systemInstruction: "You are ALETHEIA, a high-fidelity intelligence terminal designed for Zero-to-One founders. You reject bubbly optimism. You provide cold, hard, contrarian analysis based on real-world data. Be concise, technical, and ruthless.",
-      },
+      IMPORTANT: You must return the result as specific, valid JSON only. Do not use markdown blocks. Do not explain. Just the JSON text.`
+          }
+        ]
+      })
     });
 
-    let text = response.text;
-    if (!text) throw new Error("No response from Aletheia Core.");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenRouter API Error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    let text = data.choices[0]?.message?.content;
+
+    if (!text) throw new Error("No response from Aletheia Core (OpenRouter).");
 
     // Aggressively clean markdown and whitespace to find the JSON object
     try {
@@ -112,22 +80,11 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
 
       const result = JSON.parse(text) as AnalysisResult;
 
-      // Extract Grounding Metadata (Sources)
-      if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-        const chunks = response.candidates[0].groundingMetadata.groundingChunks;
-        const sources = chunks
-          .map((chunk: any) => ({
-            title: chunk.web?.title || 'Verified Intelligence Source',
-            uri: chunk.web?.uri
-          }))
-          .filter((s: any): s is { title: string; uri: string } => !!s.uri);
-
-        // Deduplicate sources
-        const uniqueSources = Array.from(
-          new Map(sources.map((item) => [item.uri, item])).values()
-        );
-        result.sources = uniqueSources as { title: string; uri: string }[];
-      }
+      // Note: OpenRouter generic response might not have grounding metadata in the same format as Google GenAI SDK.
+      // We will clear existing sources or mock them if needed, but for now strict adherence to new API.
+      // If the model supports citations, we'd need to parse them from the text or specific provider non-standard fields.
+      // For now, we omit sources or leave them empty to ensure type safety.
+      result.sources = [];
 
       return result;
 
