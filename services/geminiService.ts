@@ -31,6 +31,13 @@ export const analyzeMarket = async (query: string): Promise<AnalysisResult> => {
       Step 2 (Skeptic): Attack Step 1. Find the stagnation, the lies, and the mimicry.
       Step 3 (Synthesis): Find the "Zero to One" opportunity. The Secret.
       
+      CRITICAL INSTRUCTION: The "opportunityScore" must be a calculated metric, NOT a random number. 
+      Calculate it based on:
+      - Magnitude of the Problem (1-30 points): How painful is the status quo?
+      - Market Vacancy (1-30 points): How ignored is this specific angle?
+      - Disruptive Potential (1-40 points): Does this change the underlying mechanics of the industry?
+      Sum these values to get the final score. Be harsh. Most ideas should fall between 20-60. Only true Zero-to-One ideas deserve 80+.
+      
       Return the result in strict JSON format according to this schema:
       {
         "consensus": {
