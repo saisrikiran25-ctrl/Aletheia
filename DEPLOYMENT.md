@@ -20,13 +20,13 @@ This guide will walk you through deploying your Aletheia webapp to GitHub Pages.
 
 ### 2. Add Your API Key as a Secret (Important!)
 
-Your app requires a Gemini API key to function. You need to add this as a repository secret:
+Your app requires an OpenRouter API key to function. You need to add this as a repository secret:
 
 1. In your repository, go to **Settings** → **Secrets and variables** → **Actions**
 2. Click **New repository secret**
 3. Add the following secret:
-   - **Name**: `GEMINI_API_KEY`
-   - **Value**: Your actual Gemini API key
+   - **Name**: `OPENROUTER_API_KEY`
+   - **Value**: Your actual OpenRouter API key
 4. Click **Add secret**
 
 ### 3. Deploy Your App
@@ -82,7 +82,7 @@ After initial deployment, to update your app:
 ## Troubleshooting
 
 ### Build fails with "API key" error
-- Make sure you've added the `GEMINI_API_KEY` secret in repository settings
+- Make sure you've added the `OPENROUTER_API_KEY` secret in repository settings
 
 ### Page shows 404
 - Verify GitHub Pages is enabled in repository settings
