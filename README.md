@@ -18,7 +18,7 @@ This app is configured for automatic deployment to GitHub Pages! See [DEPLOYMENT
 
 **Quick deployment steps:**
 1. Enable GitHub Pages in repository settings (Source: GitHub Actions)
-2. Add `GEMINI_API_KEY` as a repository secret
+2. Add `OPENROUTER_API_KEY` as a repository secret
 3. Merge to `main` branch - deployment happens automatically!
 
 ## 💻 Run Locally
@@ -30,7 +30,7 @@ This app is configured for automatic deployment to GitHub Pages! See [DEPLOYMENT
    npm install
    ```
 
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the `OPENROUTER_API_KEY` in [.env.local](.env.local) to your OpenRouter API key
 
 3. Run the app:
    ```bash
